@@ -13,6 +13,7 @@ import NodeDetailsCard from './NodeDetailsCard';
 const PeerMap = dynamic(() => import('../../components/PeerMap'), { ssr: false });
 
 export default function Dashboard() {
+  const router = useRouter();
   const [nodeInfo, setNodeInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -227,9 +228,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  // Prepare data for charts
-  const router = useRouter();
 
   // Calculate total upload/download traffic
   const totalUpload = nodeInfo.peerInfo.reduce((sum, peer) => sum + (peer.bytessent || 0), 0);

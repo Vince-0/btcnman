@@ -274,6 +274,27 @@ The rules page was failing to compile with errors like "Expected ',', got '{'" a
 - Added proper logging of errors to help with debugging.
 - Refactored the Bitcoin service to use a more modular approach with separate functions for different RPC calls.
 
+## React Hooks Order Fix
+
+### Issue
+The Dashboard component was showing a console error: "React has detected a change in the order of Hooks called by Dashboard. This will lead to bugs and errors if not fixed."
+
+### Root Cause
+The `useRouter` hook was being called conditionally after other hooks, which violates React's Rules of Hooks. Specifically, it was being called after the conditional rendering logic that checks if `nodeInfo` exists.
+
+### Solution
+1. **Moved the `useRouter` Hook to the Top of the Component**:
+   - Placed the `useRouter` hook at the beginning of the component, right after the component declaration
+   - This ensures it's always called in the same order on every render
+
+2. **Removed the Duplicate `useRouter` Call**:
+   - Removed the second `useRouter` call that was happening conditionally later in the code
+   - Used the single router instance declared at the top of the component
+
+3. **Ensured Consistent Hook Order**:
+   - Verified that all hooks are called unconditionally at the top of the component
+   - This maintains the same hook call order across all renders, which is required by React's Rules of Hooks
+
 ## Next Steps
 1. Continue implementing the remaining features according to the TaskList.md
 2. Implement Ban Management features (import/export, iptables rules, statistics)

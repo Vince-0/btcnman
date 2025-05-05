@@ -31,6 +31,7 @@ logs/
 .vscode/
 *.swp
 *.swo
+.augment/*workspace
 
 # OS generated files
 .DS_Store

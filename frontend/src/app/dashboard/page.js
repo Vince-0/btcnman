@@ -6,6 +6,8 @@ import api from '../../lib/api';
 import { PieChart } from '../../components/charts';
 import dynamic from 'next/dynamic';
 import Script from 'next/script';
+import NodeDetailsCard from './NodeDetailsCard';
+
 
 // Dynamically import the PeerMap component to avoid SSR issues with Leaflet
 const PeerMap = dynamic(() => import('../../components/PeerMap'), { ssr: false });
@@ -113,59 +115,78 @@ export default function Dashboard() {
 
   if (!nodeInfo) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-6">
-          <p className="font-bold">Connection Issue</p>
-          <p>Could not connect to the Bitcoin node at 169.255.240.110. Using demo data instead.</p>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+            <p className="font-bold">Connection Issue</p>
+            <p>Could not connect to the Bitcoin node at 169.255.240.110. Using demo data instead.</p>
+          </div>
         </div>
 
-        {/* Node Info Cards with Demo Data */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-gray-700">Version</h2>
-            <p className="text-2xl font-bold">/Satoshi:28.1.0/</p>
-          </div>
+        {/* Node Info Card with Demo Data - Combined Stats */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">Node Status</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+            <div className="flex flex-col">
+              <span className="text-gray-600 text-sm">Version</span>
+              <span className="text-xl font-bold">/Satoshi:28.1.0/</span>
+            </div>
 
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-gray-700">Connections</h2>
-            <p className="text-2xl font-bold">8</p>
-          </div>
+            <div className="flex flex-col">
+              <span className="text-gray-600 text-sm">Connections</span>
+              <span className="text-xl font-bold">8</span>
+            </div>
 
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-gray-700">Block Height</h2>
-            <p className="text-2xl font-bold">825,000</p>
-          </div>
+            <div className="flex flex-col">
+              <span className="text-gray-600 text-sm">Block Height</span>
+              <span className="text-xl font-bold">825,000</span>
+            </div>
 
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="text-lg font-semibold text-gray-700">Mempool Size</h2>
-            <p className="text-2xl font-bold">2,500 txs</p>
+            <div className="flex flex-col">
+              <span className="text-gray-600 text-sm">Mempool Size</span>
+              <span className="text-xl font-bold">2,500 txs</span>
+            </div>
+
+            <div className="flex flex-col">
+              <span className="text-gray-600 text-sm">Total Upload</span>
+              <span className="text-xl font-bold">3.45 GB</span>
+            </div>
+
+            <div className="flex flex-col">
+              <span className="text-gray-600 text-sm">Total Download</span>
+              <span className="text-xl font-bold">28.72 GB</span>
+            </div>
           </div>
         </div>
 
         {/* Demo Network Information */}
         <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Network Information</h2>
-          <div className="space-y-2">
+          <h2 className="text-md font-semibold text-gray-700 mb-3">Network Information</h2>
+          <div className="space-y-1.5">
             <div className="flex justify-between">
-              <span className="text-gray-600">Network</span>
-              <span className="font-medium">mainnet</span>
+              <span className="text-gray-600 text-sm">Network</span>
+              <span className="font-medium text-sm">mainnet</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Difficulty</span>
-              <span className="font-medium">78,352,956,298,608</span>
+              <span className="text-gray-600 text-sm">Difficulty</span>
+              <span className="font-medium text-sm">78,352,956,298,608</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Mempool Usage</span>
-              <span className="font-medium">125.45 MB</span>
+              <span className="text-gray-600 text-sm">Hash Rate</span>
+              <span className="font-medium text-sm">560.82 EH/s</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Relay Fee</span>
-              <span className="font-medium">0.00001000 BTC/kB</span>
+              <span className="text-gray-600 text-sm">Mempool Usage</span>
+              <span className="font-medium text-sm">125.45 MB</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-sm">Relay Fee</span>
+              <span className="font-medium text-sm">0.00001000 BTC/kB</span>
             </div>
           </div>
         </div>
+
 
         {/* Demo Peers */}
         <div className="bg-white p-4 rounded-lg shadow">
@@ -210,6 +231,35 @@ export default function Dashboard() {
   // Prepare data for charts
   const router = useRouter();
 
+  // Calculate total upload/download traffic
+  const totalUpload = nodeInfo.peerInfo.reduce((sum, peer) => sum + (peer.bytessent || 0), 0);
+  const totalDownload = nodeInfo.peerInfo.reduce((sum, peer) => sum + (peer.bytesrecv || 0), 0);
+
+  // Format traffic values
+  const formatTraffic = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+    return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+  };
+
+  // Calculate network hash rate from difficulty
+  const calculateHashRate = (difficulty) => {
+    // Formula: hashrate = difficulty * 2^32 / 600
+    // 2^32 = 4,294,967,296
+    // 600 seconds = 10 minutes (average block time)
+    const hashRate = difficulty * 4294967296 / 600;
+
+    // Format the hash rate
+    if (hashRate < 1000) return `${hashRate.toFixed(2)} H/s`;
+    if (hashRate < 1000000) return `${(hashRate / 1000).toFixed(2)} KH/s`;
+    if (hashRate < 1000000000) return `${(hashRate / 1000000).toFixed(2)} MH/s`;
+    if (hashRate < 1000000000000) return `${(hashRate / 1000000000).toFixed(2)} GH/s`;
+    if (hashRate < 1000000000000000) return `${(hashRate / 1000000000000).toFixed(2)} TH/s`;
+    if (hashRate < 1000000000000000000) return `${(hashRate / 1000000000000000).toFixed(2)} PH/s`;
+    return `${(hashRate / 1000000000000000000).toFixed(2)} EH/s`;
+  };
+
   // Prepare peer connection type data (inbound/outbound)
   const peerConnectionData = [
     nodeInfo.peerInfo.filter(peer => !peer.outbound).length,
@@ -247,7 +297,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Leaflet CSS and JS */}
       <link
         rel="stylesheet"
@@ -289,89 +339,167 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Node Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold text-gray-700">Version</h2>
-          <p className="text-2xl font-bold">{nodeInfo.networkInfo.subversion}</p>
-        </div>
+      {/* Node Info Card - Combined Stats */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h2 className="text-xl font-semibold text-gray-700 mb-4">Node Status</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+          <div className="flex flex-col">
+            <span className="text-gray-600 text-sm">Version</span>
+            <span className="text-xl font-bold">{nodeInfo.networkInfo.subversion}</span>
+          </div>
 
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold text-gray-700">Connections</h2>
-          <p className="text-2xl font-bold">{nodeInfo.networkInfo.connections}</p>
-        </div>
+          <div className="flex flex-col">
+            <span className="text-gray-600 text-sm">Connections</span>
+            <span className="text-xl font-bold">{nodeInfo.networkInfo.connections}</span>
+          </div>
 
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold text-gray-700">Block Height</h2>
-          <p className="text-2xl font-bold">{nodeInfo.blockchainInfo.blocks}</p>
-        </div>
+          <div className="flex flex-col">
+            <span className="text-gray-600 text-sm">Block Height</span>
+            <span className="text-xl font-bold">{nodeInfo.blockchainInfo.blocks.toLocaleString()}</span>
+          </div>
 
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold text-gray-700">Mempool Size</h2>
-          <p className="text-2xl font-bold">{nodeInfo.mempoolInfo.size} txs</p>
+          <div className="flex flex-col">
+            <span className="text-gray-600 text-sm">Mempool Size</span>
+            <span className="text-xl font-bold">{nodeInfo.mempoolInfo.size.toLocaleString()} txs</span>
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-gray-600 text-sm">Total Upload</span>
+            <span className="text-xl font-bold">{formatTraffic(totalUpload)}</span>
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-gray-600 text-sm">Total Download</span>
+            <span className="text-xl font-bold">{formatTraffic(totalDownload)}</span>
+          </div>
         </div>
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Peer Connections</h2>
-          <div className="h-64">
-            <PieChart
-              data={peerConnectionData}
-              labels={peerConnectionLabels}
-              onClick={handlePeerTypeClick}
-            />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Peer Statistics Section */}
+        <div className="bg-white p-4 pb-6 rounded-lg shadow">
+          <h2 className="text-lg font-semibold text-gray-700 mb-2">Peer Statistics</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col items-center md:items-end md:pr-4">
+              <h3 className="text-sm font-medium text-gray-600 mb-2">Connection Types</h3>
+              <div className="h-52 w-44">
+                <PieChart
+                  data={peerConnectionData}
+                  labels={peerConnectionLabels}
+                  onClick={handlePeerTypeClick}
+                  options={{
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        position: 'top',
+                        align: 'center',
+                        labels: {
+                          boxWidth: 10,
+                          padding: 8,
+                          font: {
+                            size: 10
+                          }
+                        }
+                      },
+                      tooltip: {
+                        bodyFont: {
+                          size: 10
+                        }
+                      }
+                    },
+                    layout: {
+                      padding: {
+                        left: 10,
+                        right: 10,
+                        top: 10,
+                        bottom: 15
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col items-center md:items-start md:pl-4">
+              <h3 className="text-sm font-medium text-gray-600 mb-2">Version Distribution</h3>
+              <div className="h-52 w-52">
+                <PieChart
+                  data={peerVersionData}
+                  labels={peerVersionLabels}
+                  onClick={handlePeerTypeClick}
+                  options={{
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        position: 'right',
+                        align: 'start',
+                        labels: {
+                          boxWidth: 10,
+                          padding: 6,
+                          font: {
+                            size: 9
+                          }
+                        }
+                      },
+                      tooltip: {
+                        bodyFont: {
+                          size: 10
+                        }
+                      }
+                    },
+                    layout: {
+                      padding: {
+                        left: 0,
+                        right: 0,
+                        top: 5,
+                        bottom: 5
+                      }
+                    }
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Peer Versions</h2>
-          <div className="h-64">
-            <PieChart
-              data={peerVersionData}
-              labels={peerVersionLabels}
-              onClick={handlePeerTypeClick}
-              options={{
-                plugins: {
-                  legend: {
-                    position: 'right',
-                    align: 'center',
-                  }
-                }
-              }}
-            />
+          <h2 className="text-md font-semibold text-gray-700 mb-3">Network Information</h2>
+          <div className="space-y-1.5">
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-sm">Network</span>
+              <span className="font-medium text-sm">{nodeInfo.blockchainInfo.chain}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-sm">Difficulty</span>
+              <span className="font-medium text-sm">{nodeInfo.blockchainInfo.difficulty.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-sm">Hash Rate</span>
+              <span className="font-medium text-sm">{calculateHashRate(nodeInfo.blockchainInfo.difficulty)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-sm">Mempool Usage</span>
+              <span className="font-medium text-sm">{(nodeInfo.mempoolInfo.usage / 1024 / 1024).toFixed(2)} MB</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 text-sm">Relay Fee</span>
+              <span className="font-medium text-sm">{nodeInfo.mempoolInfo.mempoolminfee} BTC/kB</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow md:col-span-2">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Peer Locations</h2>
-          <div className="h-64">
-            <PeerMap peers={nodeInfo.peerInfo} />
-          </div>
-        </div>
+      </div>
 
+      {/* Node Details */}
+      <NodeDetailsCard nodeInfo={nodeInfo} />
 
-        <div className="bg-white p-4 rounded-lg shadow">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Network Information</h2>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Network</span>
-              <span className="font-medium">{nodeInfo.blockchainInfo.chain}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Difficulty</span>
-              <span className="font-medium">{nodeInfo.blockchainInfo.difficulty.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Mempool Usage</span>
-              <span className="font-medium">{(nodeInfo.mempoolInfo.usage / 1024 / 1024).toFixed(2)} MB</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Relay Fee</span>
-              <span className="font-medium">{nodeInfo.mempoolInfo.mempoolminfee} BTC/kB</span>
-            </div>
-          </div>
+      {/* Peer Locations Map */}
+      <div className="bg-white p-4 rounded-lg shadow">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Peer Locations</h2>
+        <div className="h-80 relative">
+          <PeerMap peers={nodeInfo.peerInfo} />
         </div>
       </div>
 

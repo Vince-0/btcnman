@@ -90,6 +90,7 @@ This document outlines the discrete tasks required to implement the modern versi
 - [x] Create blockchain statistics section
 - [x] Implement connected peers summary
 - [x] Add mempool statistics visualization
+- [x] Add detailed node statistics section
 
 ## Phase 6: Peer Management
 

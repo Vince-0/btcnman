@@ -7,6 +7,46 @@ import PeerFilters from '../../components/PeerFilters';
 import dynamic from 'next/dynamic';
 import Script from 'next/script';
 
+// Helper function to parse services hex string into service names
+const parseServices = (servicesHex) => {
+  if (!servicesHex) return 'N/A';
+
+  // Define known service flags and their names
+  const serviceFlags = {
+    '0000000000000001': 'NETWORK',
+    '0000000000000002': 'GETUTXO',
+    '0000000000000004': 'BLOOM',
+    '0000000000000008': 'WITNESS',
+    '0000000000000400': 'NETWORK_LIMITED',
+  };
+
+  // Convert hex to binary and check each flag
+  const serviceNames = [];
+  const hexValue = BigInt(`0x${servicesHex}`);
+
+  for (const [flag, name] of Object.entries(serviceFlags)) {
+    const flagValue = BigInt(`0x${flag}`);
+    if ((hexValue & flagValue) === flagValue) {
+      serviceNames.push(name);
+    }
+  }
+
+  return serviceNames.length > 0 ? serviceNames.join(', ') : 'NONE';
+};
+
+// Get color for service tag
+const getServiceTagColor = (service) => {
+  const colors = {
+    'NETWORK': 'bg-blue-100 text-blue-800',
+    'GETUTXO': 'bg-purple-100 text-purple-800',
+    'BLOOM': 'bg-green-100 text-green-800',
+    'WITNESS': 'bg-yellow-100 text-yellow-800',
+    'NETWORK_LIMITED': 'bg-indigo-100 text-indigo-800',
+  };
+
+  return colors[service] || 'bg-gray-100 text-gray-800';
+};
+
 // Dynamically import the PeerMap component to avoid SSR issues with Leaflet
 const PeerMap = dynamic(() => import('../../components/PeerMap'), { ssr: false });
 
@@ -117,8 +157,23 @@ export default function PeersPage() {
   };
 
   useEffect(() => {
+    // Initial fetch of peer data
     fetchPeers(filters, sort, showMap);
-  }, [router]);
+
+    // Set up an interval to refresh the data every 60 seconds if the map is shown
+    let intervalId;
+    if (showMap) {
+      intervalId = setInterval(() => {
+        fetchPeers(filters, sort, true);
+      }, 60000); // 60 seconds
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [router, showMap]);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
@@ -133,7 +188,11 @@ export default function PeersPage() {
   const handleToggleMap = () => {
     const newShowMap = !showMap;
     setShowMap(newShowMap);
-    fetchPeers(filters, sort, newShowMap);
+
+    // If we're showing the map, make sure to fetch with geo data
+    if (newShowMap) {
+      fetchPeers(filters, sort, true);
+    }
   };
 
   const handleDisconnect = async (nodeId) => {
@@ -258,7 +317,9 @@ export default function PeersPage() {
       {showMap && (
         <div className="bg-white shadow rounded-lg overflow-hidden p-4 mb-6">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Peer Locations</h2>
-          <PeerMap peers={peers} />
+          <div className="h-80 relative">
+            <PeerMap peers={peers} />
+          </div>
         </div>
       )}
 
@@ -280,7 +341,7 @@ export default function PeersPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ping
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px]">
                   Services
                 </th>
                 {showMap && (
@@ -308,8 +369,34 @@ export default function PeersPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {peer.pingtime ? `${(peer.pingtime * 1000).toFixed(2)} ms` : 'N/A'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {peer.services}
+                  <td className="px-6 py-4 text-sm">
+                    <div className="flex flex-wrap gap-1">
+                      {(() => {
+                        // Get services array
+                        let services = peer.servicesnames;
+                        if (!services) {
+                          const parsedServices = parseServices(peer.services);
+                          if (parsedServices === 'N/A' || parsedServices === 'NONE') {
+                            return (
+                              <span className="text-gray-500">
+                                {parsedServices}
+                              </span>
+                            );
+                          }
+                          services = parsedServices.split(', ');
+                        }
+
+                        // Render service tags
+                        return services.map((service, i) => (
+                          <span
+                            key={i}
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getServiceTagColor(service)}`}
+                          >
+                            {service}
+                          </span>
+                        ));
+                      })()}
+                    </div>
                   </td>
                   {showMap && (
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

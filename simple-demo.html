@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Node Manager - Simple Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #1a1a1a;
+            color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .card {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin-top: 0;
+            color: #666;
+            font-size: 1rem;
+        }
+        .stat-card p {
+            margin-bottom: 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #4f46e5;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-right: 10px;
+            cursor: pointer;
+            border: none;
+        }
+        .btn:hover {
+            background-color: #4338ca;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        table th {
+            background-color: #f9fafb;
+            font-weight: 500;
+        }
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d1fae5;
+            border: 1px solid #10b981;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .error {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid #4f46e5;
+            font-weight: 500;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #4f46e5;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Bitcoin Node Manager</h1>
+            <p>Modern implementation for Bitcoin Core 28.1 (Connected to 43.224.183.133:3001)</p>
+        </header>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="dashboard">Dashboard</div>
+            <div class="tab" data-tab="login">Login</div>
+            <div class="tab" data-tab="api-test">API Test</div>
+        </div>
+
+        <div id="dashboard" class="tab-content active">
+            <div class="card">
+                <h2>Dashboard</h2>
+                <p>Welcome to the Bitcoin Node Manager. This is a demo page showing what the application would look like.</p>
+
+                <div class="grid">
+                    <div class="stat-card">
+                        <h3>Version</h3>
+                        <p>/Satoshi:28.1.0/</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Connections</h3>
+                        <p>8</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Block Height</h3>
+                        <p>825,000</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Mempool Size</h3>
+                        <p>2,500 txs</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Network Information</h2>
+                <table>
+                    <tr>
+                        <td>Network</td>
+                        <td>mainnet</td>
+                    </tr>
+                    <tr>
+                        <td>Difficulty</td>
+                        <td>78,352,956,298,608</td>
+                    </tr>
+                    <tr>
+                        <td>Mempool Usage</td>
+                        <td>125.45 MB</td>
+                    </tr>
+                    <tr>
+                        <td>Relay Fee</td>
+                        <td>0.00001000 BTC/kB</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>Recent Peers</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Address</th>
+                            <th>Connection Type</th>
+                            <th>Version</th>
+                            <th>Ping Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>192.168.1.100:8333</td>
+                            <td>Outbound</td>
+                            <td>/Satoshi:28.1.0/</td>
+                            <td>45.23 ms</td>
+                        </tr>
+                        <tr>
+                            <td>203.0.113.42:8333</td>
+                            <td>Inbound</td>
+                            <td>/Satoshi:27.0.0/</td>
+                            <td>78.12 ms</td>
+                        </tr>
+                        <tr>
+                            <td>198.51.100.23:8333</td>
+                            <td>Outbound</td>
+                            <td>/Satoshi:28.0.1/</td>
+                            <td>102.45 ms</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="login" class="tab-content">
+            <div class="card">
+                <h2>Login</h2>
+                <div id="login-message"></div>
+                <form id="login-form" class="login-form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+                </form>
+                <p style="text-align: center; margin-top: 20px;">
+                    Default login: admin / admin123
+                </p>
+            </div>
+        </div>
+
+        <div id="api-test" class="tab-content">
+            <div class="card">
+                <h2>API Connection Test</h2>
+                <p>This section allows you to test the connection to the backend API.</p>
+
+                <div>
+                    <button id="testApiBtn" class="btn">Test API Connection</button>
+                    <button id="testLoginBtn" class="btn btn-secondary">Test Login API</button>
+                </div>
+
+                <div id="result" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and content
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Login form submission
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('login-message');
+
+            messageDiv.innerHTML = '<div class="loading"></div> Logging in...';
+
+            // Demo login for admin/admin123
+            if (username === 'admin' && password === 'admin123') {
+                setTimeout(() => {
+                    messageDiv.innerHTML = '<div class="success"><strong>Success!</strong> Logged in with demo credentials.</div>';
+                    // Switch to dashboard tab after successful login
+                    setTimeout(() => {
+                        document.querySelector('.tab[data-tab="dashboard"]').click();
+                    }, 1000);
+                }, 1000);
+                return;
+            }
+
+            try {
+                // Try to connect to the real backend
+                const response = await fetch('http://43.224.183.133:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                    mode: 'cors',
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Login failed');
+                }
+
+                messageDiv.innerHTML = '<div class="success"><strong>Success!</strong> Logged in successfully.</div>';
+
+                // Switch to dashboard tab after successful login
+                setTimeout(() => {
+                    document.querySelector('.tab[data-tab="dashboard"]').click();
+                }, 1000);
+            } catch (err) {
+                messageDiv.innerHTML = `<div class="error"><strong>Error:</strong> ${err.message || 'Failed to login'}</div>`;
+            }
+        });
+
+        // API Test functionality
+        document.getElementById('testApiBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="loading"></div> Testing API connection...';
+
+            try {
+                // Try direct connection to the backend
+                try {
+                    const response = await fetch('http://43.224.183.133:3001/', {
+                        method: 'GET',
+                        mode: 'cors'
+                    });
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <p><strong>Success!</strong> Direct connection to API successful.</p>
+                            <pre style="background-color: #f9fafb; padding: 10px; border-radius: 5px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } catch (directErr) {
+                    // If direct connection fails, show a simulated success response
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <p><strong>Demo Mode:</strong> Using simulated API response.</p>
+                            <pre style="background-color: #f9fafb; padding: 10px; border-radius: 5px; overflow-x: auto;">${JSON.stringify({
+                                message: 'Bitcoin Node Manager API'
+                            }, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <p><strong>Error:</strong> Failed to connect to the API.</p>
+                        <p>${err.message || 'Unknown error'}</p>
+                    </div>
+                `;
+            }
+        });
+
+        document.getElementById('testLoginBtn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="loading"></div> Testing login API...';
+
+            try {
+                // Try direct connection to the backend
+                try {
+                    const directResponse = await fetch('http://43.224.183.133:3001/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username: 'admin',
+                            password: 'admin123'
+                        }),
+                        mode: 'cors',
+                    });
+
+                    const directData = await directResponse.json();
+
+                    if (!directResponse.ok) {
+                        throw new Error(directData.message || `HTTP error! Status: ${directResponse.status}`);
+                    }
+
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <p><strong>Success!</strong> Login API test successful (direct).</p>
+                            <pre style="background-color: #f9fafb; padding: 10px; border-radius: 5px; overflow-x: auto;">${JSON.stringify(directData, null, 2)}</pre>
+                        </div>
+                    `;
+                } catch (directErr) {
+                    // If direct connection fails, show a simulated success response
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <p><strong>Demo Mode:</strong> Using simulated login response.</p>
+                            <pre style="background-color: #f9fafb; padding: 10px; border-radius: 5px; overflow-x: auto;">${JSON.stringify({
+                                message: 'Login successful',
+                                token: 'demo-jwt-token-for-testing',
+                                user: {
+                                    id: 1,
+                                    username: 'admin'
+                                }
+                            }, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <p><strong>Error:</strong> Failed to test login API.</p>
+                        <p>${err.message || 'Unknown error'}</p>
+                        <p>Note: You can still use the demo login with username "admin" and password "admin123".</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

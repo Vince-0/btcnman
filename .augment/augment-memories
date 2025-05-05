@@ -1,0 +1,37 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Bitcoin Node Manager
+- Bitcoin Node Manager should be reimplemented with modern frameworks while retaining functionality.
+- The implementation will be assisted by an AI tool called Augment Code following the provided documentation.
+- Implement Bitcoin Node Manager with minimalist responsive design, basic user management, connect to Bitcoin Core at 169.255.240.110, use Express.js for testing, prioritize core functionality, and track task completions.
+- Use the server's public IP address 43.224.183.133 instead of localhost for API connections.
+- User prefers not to use mock data in the Bitcoin Node Manager application.
+- User prefers documentation to be updated when fixes and changes are made to the codebase.
+
+# Technical Requirements
+- Use SQLite for data storage.
+- Implement a simple web server for deployment.
+- Implement username/password authentication with hash/salt.
+- Ensure Bitcoin Core 28.1 compatibility.
+
+# Implementation Strategy
+- Focus on simple, discrete implementation tasks, breaking down the project into different components.
+- Break down tasks further when tool calls fail, taking a step back to simplify the approach.
+- When facing complex tasks, create a summary file first and break the task into smaller parts before proceeding by addressing each item in the file individually.
+- Don't kill Node.js processes using pkill command.

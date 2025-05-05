@@ -3,7 +3,10 @@ import * as bitcoinService from '../services/bitcoin.service';
 
 export async function getNodeInfo(req: Request, res: Response) {
   try {
-    const nodeInfo = await bitcoinService.getNodeInfo();
+    // Check if geolocation data is requested
+    const includeGeo = req.query.geo === 'true';
+
+    const nodeInfo = await bitcoinService.getNodeInfo(includeGeo);
 
     // Check if we're returning mock data
     const isMockData = process.env.USE_MOCK === 'true' ||

@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title } from 'chart.js';
-import { Doughnut, Line } from 'react-chartjs-2';
+import { useRouter } from 'next/navigation';
 import api from '../../lib/api';
+import { PieChart } from '../../components/charts';
+import dynamic from 'next/dynamic';
+import Script from 'next/script';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title);
+// Dynamically import the PeerMap component to avoid SSR issues with Leaflet
+const PeerMap = dynamic(() => import('../../components/PeerMap'), { ssr: false });
 
 export default function Dashboard() {
   const [nodeInfo, setNodeInfo] = useState(null);
@@ -26,9 +29,17 @@ export default function Dashboard() {
         // Try to fetch data from the API using our API client with increased timeout
         try {
           console.log('Fetching node info from API...');
-          const response = await api.get('/bitcoin/info');
+
+          // Request peer data with geolocation for the map
+          const response = await api.get('/bitcoin/info?geo=true');
 
           console.log('API data received:', Object.keys(response.data));
+
+          // Check if peerInfo has geolocation data
+          if (response.data.peerInfo && response.data.peerInfo.length > 0) {
+            console.log('First peer data:', response.data.peerInfo[0]);
+            console.log('Peers with geolocation:', response.data.peerInfo.filter(p => p.geolocation).length);
+          }
 
           // Set the node info data
           setNodeInfo(response.data);
@@ -174,23 +185,59 @@ export default function Dashboard() {
   }
 
   // Prepare data for charts
-  const peerData = {
-    labels: ['Inbound', 'Outbound'],
-    datasets: [
-      {
-        data: [
-          nodeInfo.peerInfo.filter(peer => !peer.outbound).length,
-          nodeInfo.peerInfo.filter(peer => peer.outbound).length,
-        ],
-        backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)'],
-        borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)'],
-        borderWidth: 1,
-      },
-    ],
+  const router = useRouter();
+
+  // Prepare peer connection type data (inbound/outbound)
+  const peerConnectionData = [
+    nodeInfo.peerInfo.filter(peer => !peer.outbound).length,
+    nodeInfo.peerInfo.filter(peer => peer.outbound).length,
+  ];
+  const peerConnectionLabels = ['Inbound', 'Outbound'];
+
+  // Prepare peer version data
+  const peerVersions = {};
+  nodeInfo.peerInfo.forEach(peer => {
+    const version = peer.subver || 'Unknown';
+    peerVersions[version] = (peerVersions[version] || 0) + 1;
+  });
+
+  // Sort versions by count (descending) and take top 5, group others
+  const sortedVersions = Object.entries(peerVersions)
+    .sort((a, b) => b[1] - a[1]);
+
+  const topVersions = sortedVersions.slice(0, 5);
+  const otherVersions = sortedVersions.slice(5);
+
+  const peerVersionLabels = topVersions.map(([version]) => version);
+  const peerVersionData = topVersions.map(([_, count]) => count);
+
+  // Add "Other" category if there are more versions
+  if (otherVersions.length > 0) {
+    const otherCount = otherVersions.reduce((sum, [_, count]) => sum + count, 0);
+    peerVersionLabels.push('Other');
+    peerVersionData.push(otherCount);
+  }
+
+  // Handle chart click events
+  const handlePeerTypeClick = (index) => {
+    router.push('/peers');
   };
 
   return (
     <div className="space-y-6">
+      {/* Leaflet CSS and JS */}
+      <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossOrigin=""
+      />
+      <Script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossOrigin=""
+      />
+
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
       {/* Node Info Cards */}
@@ -221,19 +268,40 @@ export default function Dashboard() {
         <div className="bg-white p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Peer Connections</h2>
           <div className="h-64">
-            <Doughnut
-              data={peerData}
+            <PieChart
+              data={peerConnectionData}
+              labels={peerConnectionLabels}
+              onClick={handlePeerTypeClick}
+            />
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Peer Versions</h2>
+          <div className="h-64">
+            <PieChart
+              data={peerVersionData}
+              labels={peerVersionLabels}
+              onClick={handlePeerTypeClick}
               options={{
-                maintainAspectRatio: false,
                 plugins: {
                   legend: {
-                    position: 'bottom',
-                  },
-                },
+                    position: 'right',
+                    align: 'center',
+                  }
+                }
               }}
             />
           </div>
         </div>
+
+        <div className="bg-white p-4 rounded-lg shadow md:col-span-2">
+          <h2 className="text-lg font-semibold text-gray-700 mb-4">Peer Locations</h2>
+          <div className="h-64">
+            <PeerMap peers={nodeInfo.peerInfo} />
+          </div>
+        </div>
+
 
         <div className="bg-white p-4 rounded-lg shadow">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">Network Information</h2>

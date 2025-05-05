@@ -370,16 +370,79 @@ const mockData = {
   ]
 };
 
-export async function getNodeInfo() {
+export async function getNodeInfo(includeGeo = false) {
   try {
     // Use mock data if enabled
     if (USE_MOCK) {
       console.log('Using mock data (USE_MOCK is true)');
+
+      // Add mock geolocation data if requested
+      let peerInfoWithGeo = [...mockData.peerInfo];
+
+      if (includeGeo) {
+        peerInfoWithGeo = mockData.peerInfo.map((peer, index) => {
+          // Add mock geolocation data based on the peer's IP
+          const mockGeoData = {
+            '192.168.1.100': {
+              ip: '192.168.1.100',
+              country: 'United States',
+              countryCode: 'US',
+              region: 'CA',
+              regionName: 'California',
+              city: 'San Francisco',
+              zip: '94105',
+              lat: 37.7749,
+              lon: -122.4194,
+              timezone: 'America/Los_Angeles',
+              isp: 'Mock ISP',
+              org: 'Mock Organization',
+              as: 'AS12345 Mock AS'
+            },
+            '203.0.113.42': {
+              ip: '203.0.113.42',
+              country: 'Germany',
+              countryCode: 'DE',
+              region: 'BE',
+              regionName: 'Berlin',
+              city: 'Berlin',
+              zip: '10115',
+              lat: 52.5200,
+              lon: 13.4050,
+              timezone: 'Europe/Berlin',
+              isp: 'Mock ISP',
+              org: 'Mock Organization',
+              as: 'AS12345 Mock AS'
+            },
+            '198.51.100.23': {
+              ip: '198.51.100.23',
+              country: 'Japan',
+              countryCode: 'JP',
+              region: 'TK',
+              regionName: 'Tokyo',
+              city: 'Tokyo',
+              zip: '100-0001',
+              lat: 35.6762,
+              lon: 139.6503,
+              timezone: 'Asia/Tokyo',
+              isp: 'Mock ISP',
+              org: 'Mock Organization',
+              as: 'AS12345 Mock AS'
+            }
+          };
+
+          const ip = peer.addr.split(':')[0];
+          return {
+            ...peer,
+            geolocation: mockGeoData[ip] || null
+          };
+        });
+      }
+
       return {
         networkInfo: mockData.networkInfo,
         blockchainInfo: mockData.blockchainInfo,
         mempoolInfo: mockData.mempoolInfo,
-        peerInfo: mockData.peerInfo
+        peerInfo: peerInfoWithGeo
       };
     }
 
@@ -482,6 +545,37 @@ export async function getNodeInfo() {
         console.log('Bitcoin-core client not available, using mock data for peer info');
         // Keep mock data for this component
       }
+    }
+
+    // Add geolocation data if requested
+    if (includeGeo && result.peerInfo && result.peerInfo.length > 0) {
+      console.log('Adding geolocation data to peer info');
+
+      // Extract IPs from peers
+      const ips = result.peerInfo.map(peer => peer.addr.split(':')[0]);
+
+      // Check if we need to fetch new geolocation data
+      const ipsToFetch = ips.filter(ip =>
+        !peerCache.geoData[ip] ||
+        (Date.now() - peerCache.timestamp > CACHE_EXPIRATION)
+      );
+
+      if (ipsToFetch.length > 0) {
+        console.log(`Fetching geolocation data for ${ipsToFetch.length} IPs`);
+        const newGeoData = await getBatchIPGeolocation(ipsToFetch);
+
+        // Update cache with new data
+        peerCache.geoData = { ...peerCache.geoData, ...newGeoData };
+      }
+
+      // Add geolocation data to peers
+      result.peerInfo = result.peerInfo.map(peer => {
+        const ip = peer.addr.split(':')[0];
+        return {
+          ...peer,
+          geolocation: peerCache.geoData[ip] || null
+        };
+      });
     }
 
     return result;

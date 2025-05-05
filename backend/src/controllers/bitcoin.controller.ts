@@ -32,16 +32,53 @@ export async function getNodeInfo(req: Request, res: Response) {
 
 export async function getPeers(req: Request, res: Response) {
   try {
-    const peers = await bitcoinService.getPeers();
+    // Extract query parameters for filtering and sorting
+    const filters: any = {};
+    const sort: any = {};
+
+    // Connection type filter (inbound/outbound)
+    if (req.query.connectionType) {
+      filters.connectionType = req.query.connectionType === 'inbound' ? true : false;
+    }
+
+    // Version filter
+    if (req.query.version) {
+      filters.version = req.query.version;
+    }
+
+    // Services filter
+    if (req.query.services) {
+      filters.services = req.query.services;
+    }
+
+    // Country filter (requires geolocation)
+    if (req.query.country) {
+      filters.country = req.query.country;
+    }
+
+    // Sorting
+    if (req.query.sortBy) {
+      const sortField = req.query.sortBy as string;
+      const sortOrder = req.query.sortOrder === 'desc' ? 'desc' : 'asc';
+      sort[sortField] = sortOrder;
+    }
+
+    // Include geolocation data
+    const includeGeo = req.query.geo === 'true';
+
+    const peers = await bitcoinService.getPeers(filters, sort, includeGeo);
 
     // Check if we're returning mock data
     const isMockData = process.env.USE_MOCK === 'true' ||
-                      (peers === bitcoinService.getMockData().peerInfo);
+                      (peers.data === bitcoinService.getMockData().peerInfo);
 
     // Add a flag to indicate if this is mock data
     return res.status(200).json({
-      peers: peers,
-      _isMockData: isMockData
+      peers: peers.data,
+      total: peers.total,
+      filtered: peers.filtered,
+      _isMockData: isMockData,
+      lastUpdated: peers.lastUpdated
     });
   } catch (error: any) {
     console.error('Error in getPeers controller:', error);

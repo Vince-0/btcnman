@@ -102,9 +102,181 @@ The PostCSS plugin for Tailwind CSS had moved to a separate package.
 - Updated environment variable documentation
 - Added examples for common use cases and issues
 
+## UI Styling Fixes
+
+### Issue
+The page styling was broken and the pages looked ugly. The navigation sidebar did not persist across all pages.
+
+### Root Cause
+1. Incorrect Tailwind CSS configuration and imports
+2. Missing proper directives in globals.css
+3. Incorrect package versions
+4. Navigation sidebar was only included in the dashboard layout, not in the root layout
+
+### Solution
+1. **Fixed PostCSS Configuration**:
+   - Updated `frontend/postcss.config.mjs` to use the correct Tailwind CSS plugin
+   - Removed the incorrect `@tailwindcss/postcss` reference
+
+2. **Updated Tailwind CSS Integration**:
+   - Added proper Tailwind directives to `globals.css`
+   - Enhanced the Tailwind configuration with a better color scheme and font settings
+
+3. **Fixed Package Dependencies**:
+   - Updated package.json to use the correct versions of Tailwind CSS (3.3.2), PostCSS, and Autoprefixer
+   - Removed the non-existent Tailwind CSS v4.1.5 dependency
+
+4. **Removed Duplicate Configuration Files**:
+   - Removed duplicate `tailwind.config.js` and `postcss.config.js` files from the root directory
+   - Ensured all configuration is properly located in the frontend directory
+
+5. **Created a Template-Based Layout**:
+   - Added a `template.js` file in the app directory that serves as a client component wrapper
+   - This template handles the conditional rendering of the sidebar and header based on the current path
+   - Kept the root layout as a server component to properly handle metadata
+   - Removed client-side logic from the root layout to avoid hydration issues
+
+## API Timeout and Error Handling Improvements
+
+### Issue
+API requests were timing out with "AxiosError: timeout of 30000ms exceeded" and sometimes failing with 500 errors.
+
+### Root Cause
+1. Default timeout values were too short for some Bitcoin RPC operations
+2. Error handling was not robust enough to handle connection issues
+3. The bitcoin-core client had URI format issues
+
+### Solution
+1. **Created a Centralized API Client**:
+   - Created a new `api.js` file in the `frontend/src/lib` directory
+   - Set up an Axios instance with a 60-second timeout (2x the original 30 seconds)
+   - Added request interceptors to automatically include authentication tokens
+   - Added response interceptors to handle common errors, including timeout errors
+
+2. **Improved Error Handling in the Backend**:
+   - Updated the Bitcoin service to handle each API call individually
+   - Added graceful fallbacks to mock data when the Bitcoin node is unavailable
+   - Fixed URI format issues in the bitcoin-core client configuration
+   - Added better error messages that provide more specific information about what went wrong
+
+3. **Enhanced API Response Format**:
+   - Added a flag to indicate when mock data is being returned
+   - Structured the API responses to be more consistent
+   - Included detailed error messages in API error responses
+
+4. **Improved Frontend Error Handling**:
+   - Updated the dashboard and peers pages to handle the new API response format
+   - Added better error messages that explain what went wrong to the user
+   - Added a warning when mock data is being displayed
+   - Improved error extraction from API responses
+
+5. **Fixed Bitcoin Core Client Configuration**:
+   - Created a function to get the bitcoin-core client that handles errors gracefully
+   - Added a `baseUrl` parameter with the correct protocol and trailing slash
+   - Disabled strict SSL to avoid certificate validation issues
+   - Added checks throughout the code to handle the case where the client might be null
+
+6. **Standardized Return Values**:
+   - Updated action functions (ban, unban, disconnect) to return consistent objects
+   - Added success/failure flags and informative messages
+   - This makes it easier for the frontend to handle errors
+
+## Geolocation Service Fixes
+
+### Issue
+The geolocation service was failing with HTTP 405 Method Not Allowed errors when trying to fetch location data from ip-api.com.
+
+### Root Cause
+1. The batch endpoint for ip-api.com requires a POST request, but we were using GET
+2. The data payload was being sent incorrectly
+
+### Solution
+1. **Modified API Request Method**:
+   - Changed from using the batch endpoint to making individual requests for each IP
+   - Used GET requests with properly formatted query parameters
+   - Added fields parameter to limit the data returned
+
+2. **Improved Error Handling**:
+   - Added try/catch blocks around each individual IP request
+   - Implemented proper logging for geolocation errors
+   - Added fallback to return null for failed geolocation requests
+
+3. **Enhanced Caching Mechanism**:
+   - Created a database model (IPGeolocation) to store geolocation data
+   - Implemented a two-level cache (in-memory and database)
+   - Added a 24-hour expiration for cached data
+
+4. **Rate Limiting Implementation**:
+   - Added rate limiting to respect the 15 requests per minute limit
+   - Implemented a counter that resets every minute
+   - Added logic to skip geolocation requests when the rate limit is reached
+
+## TypeScript Comparison Operator Fixes
+
+### Issue
+The rule execution engine was failing with TypeScript errors: "Operator '<=' cannot be applied to types 'number' and 'unknown'".
+
+### Root Cause
+TypeScript was unable to determine that the operand in condition evaluations was a number.
+
+### Solution
+1. **Added Type Casting**:
+   - Used Number() to explicitly cast operands to numbers before comparison
+   - Modified all comparison operators (<=, <, >=, >) to use explicit number casting
+   - Kept the type checking to ensure values are numbers before comparison
+
+2. **Improved Type Safety**:
+   - Added more specific interface definitions for filters and sort parameters
+   - Used proper TypeScript types for function parameters and return values
+   - Added type guards to check value types before operations
+
+## Frontend JSX Syntax Errors
+
+### Issue
+The rules page was failing to compile with errors like "Expected ',', got '{'" and "Return statement is not allowed here".
+
+### Root Cause
+1. JSX comments were causing syntax errors in the Next.js compilation
+2. The file structure had become corrupted during editing
+
+### Solution
+1. **Rebuilt the Component**:
+   - Completely rewrote the rules page component from scratch
+   - Removed all JSX comments that were causing syntax errors
+   - Used proper JSX syntax for conditional rendering
+
+2. **Improved Component Structure**:
+   - Organized the component into logical sections
+   - Added proper error handling and loading states
+   - Implemented proper form validation for rule creation/editing
+
+3. **Enhanced Error Handling**:
+   - Added error display for API failures
+   - Implemented loading indicators for async operations
+   - Added confirmation dialogs for destructive actions
+
+## Block Explorer Fixes
+
+### Issue: Invalid URI Error in Block Explorer
+- **Problem**: The Block Explorer was failing to connect to the Bitcoin node with an error: "Invalid URI "169.255.240.110/""
+- **Root Cause**: The RPC URL format was incorrect, missing authentication credentials and having an improper format.
+- **Fix**:
+  - Updated the RPC URL format in `backend/src/services/bitcoin.service.ts` to include authentication credentials:
+    ```javascript
+    const RPC_URL = `http://${RPC_USER}:${RPC_PASSWORD}@${RPC_HOST}:${RPC_PORT}/`;
+    ```
+  - Updated the custom RPC client to use the correct URL format and provide fallback to mock data when the real RPC call fails.
+  - Updated the `getBlock` and `getBlockByHeight` functions to use the custom RPC client instead of the bitcoin-core client.
+
+### Block Explorer Improvements
+- Implemented a robust fallback mechanism in the custom RPC client to use mock data when the real RPC call fails.
+- Improved error handling in the Bitcoin service to provide more informative error messages.
+- Added proper logging of errors to help with debugging.
+- Refactored the Bitcoin service to use a more modular approach with separate functions for different RPC calls.
+
 ## Next Steps
 1. Continue implementing the remaining features according to the TaskList.md
-2. Add more comprehensive error handling
-3. Implement real-time updates using WebSockets
+2. Implement Ban Management features (import/export, iptables rules, statistics)
+3. Add more comprehensive error handling
 4. Enhance the UI with more visualizations
 5. Add more detailed documentation

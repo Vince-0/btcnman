@@ -4,10 +4,13 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import http from 'http';
 import { Server } from 'socket.io';
+import { startRuleScheduler } from './services/scheduler.service';
 
 // Import routes
 import authRoutes from './routes/auth.routes';
 import bitcoinRoutes from './routes/bitcoin.routes';
+import ruleRoutes from './routes/rule.routes';
+import blockExplorerRoutes from './routes/blockExplorer.routes';
 
 // Load environment variables
 dotenv.config();
@@ -51,6 +54,8 @@ app.get('/', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/bitcoin', bitcoinRoutes);
+app.use('/api/rules', ruleRoutes);
+app.use('/api/explorer', blockExplorerRoutes);
 
 // Socket.io connection
 io.on('connection', (socket) => {
@@ -70,4 +75,7 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 // Start server
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+
+  // Start the rule scheduler
+  startRuleScheduler();
 });

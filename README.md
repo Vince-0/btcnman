@@ -4,13 +4,52 @@ Modern implementation of Bitcoin Node Manager, a dashboard and control system fo
 
 ## Features
 
-- Dashboard with node status and information
-- Peer management
-- Rule system for automatic peer management
-- Ban management
-- Block explorer
-- Wallet overview (read-only)
-- User authentication
+- **Dashboard**: Real-time node status, blockchain statistics, and mempool information
+- **Peer Management**:
+  - View, filter, and sort connected peers
+  - Peer geolocation with map visualization
+  - Disconnect or ban problematic peers
+- **Rule System**:
+  - Create automated rules for peer management
+  - Condition-based triggers (ping time, version, etc.)
+  - Scheduled rule execution
+  - Rule execution logs and history
+- **Ban Management**: View and manage banned peers
+- **Block Explorer**: Browse blocks and transactions
+- **Wallet Overview**: Read-only wallet information
+- **User Authentication**: Secure login system
+
+## Recent Improvements
+
+- **Block Explorer Enhancements**:
+  - Fixed Bitcoin RPC URL format for proper connection to the Bitcoin node
+  - Implemented robust fallback to mock data when RPC calls fail
+  - Added comprehensive error handling for RPC connection issues
+  - Optimized block and transaction data retrieval with caching
+
+- **Peer Management Enhancements**:
+  - Added filtering and sorting capabilities for peer list
+  - Implemented geolocation service with IP-API.com integration
+  - Created interactive map visualization for peer locations
+  - Added caching system for geolocation data to respect rate limits
+
+- **Rule System Implementation**:
+  - Created rule execution engine with condition evaluation
+  - Implemented scheduled rule execution
+  - Added rule logs for execution history
+  - Created comprehensive API endpoints for rule management
+
+- **UI Improvements**:
+  - Enhanced UI styling with fixed Tailwind CSS configuration
+  - Persistent navigation sidebar across all pages
+  - Improved error handling with better messages
+  - Added loading indicators for asynchronous operations
+
+- **Backend Enhancements**:
+  - Increased API request timeouts to 60 seconds for better reliability
+  - Implemented automatic fallbacks to mock data when needed
+  - Standardized API responses with consistent formats
+  - Added robust caching mechanisms to improve performance
 
 ## Technology Stack
 
@@ -104,11 +143,49 @@ If you encounter issues connecting to the Bitcoin Core node:
    rpcpassword=your_rpc_password
    rpcallowip=0.0.0.0/0
    ```
-4. If you still have issues, you can set `USE_MOCK=true` in the `.env` file to use mock data instead
+4. The RPC URL format has been fixed to properly include authentication credentials:
+   ```
+   http://username:password@host:port/
+   ```
+5. If you still have issues, you can set `USE_MOCK=true` in the `.env` file to use mock data instead
+6. The application now includes robust fallback mechanisms that will automatically use mock data if the Bitcoin node is unavailable
+7. The Block Explorer has been specifically enhanced to handle RPC connection issues gracefully
+
+#### API Timeout Issues
+If you encounter timeout errors when making API requests:
+
+1. The default timeout has been increased to 60 seconds (from 30 seconds)
+2. You can further increase the timeout by modifying the `timeout` value in:
+   - `frontend/src/lib/api.js` for frontend requests
+   - `backend/src/services/bitcoin.service.ts` for backend requests
+3. The application will display informative error messages when timeouts occur
+4. For operations that consistently time out, consider using mock data by setting `USE_MOCK=true` in the `.env` file
 
 #### Tailwind CSS Issues
 
-If you encounter issues with Tailwind CSS, you can use the simple demo page at `http://localhost:8000/simple-demo.html` which doesn't rely on Tailwind CSS or Next.js.
+If you encounter issues with Tailwind CSS:
+
+1. Make sure you have the correct dependencies installed:
+   ```
+   cd frontend
+   npm install tailwindcss@3.3.2 autoprefixer@10.4.14 postcss@8.4.24
+   ```
+2. Check that the Tailwind directives are properly included in `frontend/src/app/globals.css`:
+   ```css
+   @tailwind base;
+   @tailwind components;
+   @tailwind utilities;
+   ```
+3. Verify that `frontend/postcss.config.mjs` is correctly configured:
+   ```js
+   export default {
+     plugins: {
+       tailwindcss: {},
+       autoprefixer: {},
+     },
+   }
+   ```
+4. If you still have issues, you can use the simple demo page at `http://localhost:8000/simple-demo.html` which doesn't rely on Tailwind CSS or Next.js.
 
 The demo page includes:
 - A dashboard with sample Bitcoin node information
@@ -121,6 +198,13 @@ If you encounter JWT authentication issues:
 1. Make sure the `JWT_SECRET` is set in the `.env` file
 2. Try clearing your browser's local storage and logging in again
 3. Check that the backend server is running and accessible
+
+#### UI Layout Issues
+If the navigation sidebar doesn't appear on all pages:
+
+1. The application now uses a template-based layout approach to ensure the sidebar persists across all pages
+2. If you're developing new pages, make sure they don't override the template layout
+3. The sidebar is automatically hidden on authentication pages (login, register) for a better user experience
 
 ## Deployment
 

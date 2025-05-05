@@ -60,6 +60,10 @@ This document provides a summary of the current implementation status of the Bit
 - ✅ Peers list page created
 - ✅ Peer details view implemented
 - ✅ Peer action buttons (disconnect, ban) created
+- ✅ Peer filtering and sorting implemented
+- ✅ Peer geolocation service added
+- ✅ Filtering and sorting UI implemented
+- ✅ Peer map visualization added
 
 ### Ban Management
 - ✅ Banned peers API endpoint created
@@ -78,6 +82,9 @@ This document provides a summary of the current implementation status of the Bit
 - ✅ Blocks list page created
 - ✅ Block details view implemented
 - ✅ Transaction details view implemented
+- ✅ Bitcoin RPC URL format fixed for proper connection
+- ✅ Fallback to mock data implemented when RPC calls fail
+- ✅ Robust error handling added for RPC connection issues
 
 ### Wallet Overview
 - ✅ Wallet summary API endpoint created
@@ -101,19 +108,13 @@ This document provides a summary of the current implementation status of the Bit
 
 ## Features In Progress
 
-### Peer Management
-- Implement peer filtering and sorting
-- Add peer geolocation service
-- Implement filtering and sorting UI
-- Add peer map visualization
-
 ### Rule System
-- Create rule model and database table
-- Implement rule execution engine
-- Create rule log model and storage
-- Implement scheduled rule execution
-- Create rule API endpoints (CRUD)
-- Create rule execution history view
+- ✅ Create rule model and database table
+- ✅ Implement rule execution engine
+- ✅ Create rule log model and storage
+- ✅ Implement scheduled rule execution
+- ✅ Create rule API endpoints (CRUD)
+- ✅ Create rule execution history view
 - Add rule scheduling interface
 
 ### Ban Management

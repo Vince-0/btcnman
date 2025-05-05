@@ -55,3 +55,21 @@ model Setting {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+model IPGeolocation {
+  id          Int      @id @default(autoincrement())
+  ip          String   @unique
+  country     String
+  countryCode String
+  region      String
+  regionName  String
+  city        String
+  zip         String
+  lat         Float
+  lon         Float
+  timezone    String
+  isp         String
+  org         String
+  as          String
+  timestamp   DateTime @default(now())
+}

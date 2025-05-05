@@ -97,29 +97,29 @@ This document outlines the discrete tasks required to implement the modern versi
 - [x] Create API endpoints for peer listing
 - [x] Implement peer details endpoint
 - [x] Create peer disconnect/ban endpoints
-- [ ] Implement peer filtering and sorting
-- [ ] Add peer geolocation service
+- [x] Implement peer filtering and sorting
+- [x] Add peer geolocation service
 
 ### 6.2 Peer Management UI
 - [x] Create peers list page
 - [x] Implement peer details view
 - [x] Create peer action buttons (disconnect, ban)
-- [ ] Implement filtering and sorting UI
-- [ ] Add peer map visualization
+- [x] Implement filtering and sorting UI
+- [x] Add peer map visualization
 
 ## Phase 7: Rule System
 
 ### 7.1 Rule System Backend
-- [ ] Create rule model and database table
-- [ ] Implement rule execution engine
-- [ ] Create rule log model and storage
-- [ ] Implement scheduled rule execution
-- [ ] Create rule API endpoints (CRUD)
+- [x] Create rule model and database table
+- [x] Implement rule execution engine
+- [x] Create rule log model and storage
+- [x] Implement scheduled rule execution
+- [x] Create rule API endpoints (CRUD)
 
 ### 7.2 Rule System Frontend
 - [x] Create rules management page
 - [x] Implement rule creation form
-- [ ] Create rule execution history view
+- [x] Create rule execution history view
 - [x] Implement rule editor
 - [ ] Add rule scheduling interface
 
@@ -154,6 +154,11 @@ This document outlines the discrete tasks required to implement the modern versi
 - [ ] Create fork visualization
 - [x] Implement transaction details view
 - [ ] Add block statistics visualization
+
+### 9.3 Block Explorer Improvements
+- [x] Fix Bitcoin RPC URL format for proper connection
+- [x] Implement fallback to mock data when RPC calls fail
+- [x] Add robust error handling for RPC connection issues
 
 ## Phase 10: Wallet Overview
 

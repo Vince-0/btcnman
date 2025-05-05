@@ -50,7 +50,7 @@ This document outlines the discrete tasks required to implement the modern versi
 - [x] Implement connection management
 - [x] Add error handling for RPC calls
 - [x] Create utility functions for common RPC operations
-- [ ] Implement caching for frequent RPC calls
+- [x] Implement caching for frequent RPC calls
 
 ### 3.2 Node Information API
 - [x] Create API endpoints for node information

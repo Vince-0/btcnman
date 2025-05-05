@@ -1,6 +1,7 @@
 import Client from 'bitcoin-core';
 import axios from 'axios';
 import { getIPGeolocation, getBatchIPGeolocation, GeoLocationData } from './geolocation.service';
+import { getFromCache, saveToCache, isCacheValid, getCacheTimestamp } from './cache.service';
 
 // Check if we should use mock data
 const USE_MOCK = process.env.USE_MOCK === 'true' || false;
@@ -370,8 +371,36 @@ const mockData = {
   ]
 };
 
-export async function getNodeInfo(includeGeo = false) {
+export async function getNodeInfo(includeGeo = false, useCache = true) {
   try {
+    // Check if we have cached data and should use it
+    interface NodeInfoCache {
+      networkInfo: any;
+      blockchainInfo: any;
+      mempoolInfo: any;
+      peerInfo: any[];
+    }
+
+    const cachedData = getFromCache<NodeInfoCache>('nodeInfo', useCache);
+    if (cachedData) {
+      console.log('Using cached node info data');
+
+      // If we need geolocation data but it's not in the cache, add it
+      if (includeGeo && cachedData.peerInfo && cachedData.peerInfo.length > 0) {
+        const peersWithGeo = await addGeolocationToPeers(cachedData.peerInfo, useCache);
+        return {
+          ...cachedData,
+          peerInfo: peersWithGeo,
+          lastUpdated: new Date(getCacheTimestamp('nodeInfo'))
+        };
+      }
+
+      return {
+        ...cachedData,
+        lastUpdated: new Date(getCacheTimestamp('nodeInfo'))
+      };
+    }
+
     // Use mock data if enabled
     if (USE_MOCK) {
       console.log('Using mock data (USE_MOCK is true)');
@@ -438,11 +467,19 @@ export async function getNodeInfo(includeGeo = false) {
         });
       }
 
-      return {
+      const mockResult = {
         networkInfo: mockData.networkInfo,
         blockchainInfo: mockData.blockchainInfo,
         mempoolInfo: mockData.mempoolInfo,
         peerInfo: peerInfoWithGeo
+      };
+
+      // Save to cache
+      saveToCache('nodeInfo', mockResult);
+
+      return {
+        ...mockResult,
+        lastUpdated: new Date(getCacheTimestamp('nodeInfo'))
       };
     }
 
@@ -550,50 +587,77 @@ export async function getNodeInfo(includeGeo = false) {
     // Add geolocation data if requested
     if (includeGeo && result.peerInfo && result.peerInfo.length > 0) {
       console.log('Adding geolocation data to peer info');
-
-      // Extract IPs from peers
-      const ips = result.peerInfo.map(peer => peer.addr.split(':')[0]);
-
-      // Check if we need to fetch new geolocation data
-      const ipsToFetch = ips.filter(ip =>
-        !peerCache.geoData[ip] ||
-        (Date.now() - peerCache.timestamp > CACHE_EXPIRATION)
-      );
-
-      if (ipsToFetch.length > 0) {
-        console.log(`Fetching geolocation data for ${ipsToFetch.length} IPs`);
-        const newGeoData = await getBatchIPGeolocation(ipsToFetch);
-
-        // Update cache with new data
-        peerCache.geoData = { ...peerCache.geoData, ...newGeoData };
-      }
-
-      // Add geolocation data to peers
-      result.peerInfo = result.peerInfo.map(peer => {
-        const ip = peer.addr.split(':')[0];
-        return {
-          ...peer,
-          geolocation: peerCache.geoData[ip] || null
-        };
-      });
+      result.peerInfo = await addGeolocationToPeers(result.peerInfo, useCache);
     }
 
-    return result;
+    // Save to cache
+    saveToCache('nodeInfo', result);
+
+    return {
+      ...result,
+      lastUpdated: new Date(getCacheTimestamp('nodeInfo'))
+    };
   } catch (error) {
     console.error('Error getting node info:', error);
 
     // Return mock data as a last resort
     console.log('All RPC methods failed, returning mock data');
-    return {
+    const fallbackResult = {
       networkInfo: mockData.networkInfo,
       blockchainInfo: mockData.blockchainInfo,
       mempoolInfo: mockData.mempoolInfo,
       peerInfo: mockData.peerInfo
     };
+
+    // Save fallback to cache
+    saveToCache('nodeInfo', fallbackResult);
+
+    return {
+      ...fallbackResult,
+      lastUpdated: new Date(getCacheTimestamp('nodeInfo'))
+    };
   }
 }
 
 
+
+/**
+ * Helper function to add geolocation data to peers
+ * @param peers The peers to add geolocation data to
+ * @param useCache Whether to use cached geolocation data
+ * @returns Peers with geolocation data
+ */
+async function addGeolocationToPeers(peers: any[], useCache: boolean = true): Promise<any[]> {
+  if (!peers || peers.length === 0) {
+    return peers;
+  }
+
+  // Extract IPs from peers
+  const ips = peers.map(peer => peer.addr.split(':')[0]);
+
+  // Check if we need to fetch new geolocation data
+  const ipsToFetch = ips.filter(ip =>
+    !peerCache.geoData[ip] ||
+    (Date.now() - peerCache.timestamp > CACHE_EXPIRATION)
+  );
+
+  if (ipsToFetch.length > 0) {
+    console.log(`Fetching geolocation data for ${ipsToFetch.length} IPs`);
+    const newGeoData = await getBatchIPGeolocation(ipsToFetch);
+
+    // Update cache with new data
+    peerCache.geoData = { ...peerCache.geoData, ...newGeoData };
+  }
+
+  // Add geolocation data to peers
+  return peers.map(peer => {
+    const ip = peer.addr.split(':')[0];
+    return {
+      ...peer,
+      geolocation: peerCache.geoData[ip] || null
+    };
+  });
+}
 
 // Cache for peer data
 let peerCache = {
@@ -617,18 +681,19 @@ interface PeerSort {
   [key: string]: 'asc' | 'desc';
 }
 
-export async function getPeers(filters: PeerFilters = {}, sort: PeerSort = {}, includeGeo = false) {
+export async function getPeers(filters: PeerFilters = {}, sort: PeerSort = {}, includeGeo = false, useCache = true) {
   try {
     let peerInfo: any[] = [];
     let lastUpdated = new Date();
 
-    // Check if cache is valid
-    if (Date.now() - peerCache.timestamp < CACHE_EXPIRATION) {
+    // Check if we have cached data and should use it
+    const cachedData = getFromCache<any[]>('peers', useCache);
+    if (cachedData) {
       console.log('Using cached peer data');
-      peerInfo = [...peerCache.data];
-      lastUpdated = new Date(peerCache.timestamp);
+      peerInfo = [...cachedData];
+      lastUpdated = new Date(getCacheTimestamp('peers'));
     } else {
-      // Cache is expired, fetch new data
+      // Cache is expired or we're not using cache, fetch new data
       if (USE_MOCK) {
         console.log('Using mock data for peers (USE_MOCK is true)');
         peerInfo = mockData.peerInfo;
@@ -663,9 +728,12 @@ export async function getPeers(filters: PeerFilters = {}, sort: PeerSort = {}, i
       }
 
       // Update cache
+      saveToCache('peers', peerInfo);
+      lastUpdated = new Date(getCacheTimestamp('peers'));
+
+      // Also update the old cache for backward compatibility
       peerCache.data = peerInfo;
       peerCache.timestamp = Date.now();
-      lastUpdated = new Date(peerCache.timestamp);
     }
 
     // Get total count before filtering

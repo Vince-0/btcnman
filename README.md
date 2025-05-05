@@ -21,6 +21,13 @@ Modern implementation of Bitcoin Node Manager, a dashboard and control system fo
 
 ## Recent Improvements
 
+- **RPC Data Caching System**:
+  - Implemented centralized caching service for Bitcoin RPC data
+  - Added manual refresh mechanism with "Refresh" buttons
+  - Display cached data by default to reduce load on Bitcoin node
+  - Show timestamps for when data was last updated
+  - Optimized API endpoints to respect cache preferences
+
 - **Block Explorer Enhancements**:
   - Fixed Bitcoin RPC URL format for proper connection to the Bitcoin node
   - Implemented robust fallback to mock data when RPC calls fail
@@ -50,6 +57,9 @@ Modern implementation of Bitcoin Node Manager, a dashboard and control system fo
   - Implemented automatic fallbacks to mock data when needed
   - Standardized API responses with consistent formats
   - Added robust caching mechanisms to improve performance
+  - Created centralized cache service with configurable expiration times
+  - Implemented cache-first approach with manual refresh capability
+  - Added timestamps to API responses to show when data was last updated
 
 ## Technology Stack
 
@@ -160,6 +170,16 @@ If you encounter timeout errors when making API requests:
    - `backend/src/services/bitcoin.service.ts` for backend requests
 3. The application will display informative error messages when timeouts occur
 4. For operations that consistently time out, consider using mock data by setting `USE_MOCK=true` in the `.env` file
+
+#### Caching System
+The application now uses a caching system to reduce load on the Bitcoin node:
+
+1. By default, all pages display cached data first instead of making fresh RPC calls
+2. Each page shows when the data was last updated
+3. Use the "Refresh" button to fetch fresh data from the Bitcoin node
+4. The cache expiration time is set to 5 minutes by default
+5. You can modify the cache expiration time in `backend/src/services/cache.service.ts`
+6. If you need to bypass the cache programmatically, add `useCache=false` to API requests
 
 #### Tailwind CSS Issues
 

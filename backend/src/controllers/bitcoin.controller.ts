@@ -6,7 +6,10 @@ export async function getNodeInfo(req: Request, res: Response) {
     // Check if geolocation data is requested
     const includeGeo = req.query.geo === 'true';
 
-    const nodeInfo = await bitcoinService.getNodeInfo(includeGeo);
+    // Check if we should use cache (default to true unless explicitly set to false)
+    const useCache = req.query.useCache !== 'false';
+
+    const nodeInfo = await bitcoinService.getNodeInfo(includeGeo, useCache);
 
     // Check if we're returning mock data
     const isMockData = process.env.USE_MOCK === 'true' ||
@@ -69,7 +72,10 @@ export async function getPeers(req: Request, res: Response) {
     // Include geolocation data
     const includeGeo = req.query.geo === 'true';
 
-    const peers = await bitcoinService.getPeers(filters, sort, includeGeo);
+    // Check if we should use cache (default to true unless explicitly set to false)
+    const useCache = req.query.useCache !== 'false';
+
+    const peers = await bitcoinService.getPeers(filters, sort, includeGeo, useCache);
 
     // Check if we're returning mock data
     const isMockData = process.env.USE_MOCK === 'true' ||

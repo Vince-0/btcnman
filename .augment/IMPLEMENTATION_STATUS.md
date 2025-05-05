@@ -38,6 +38,8 @@ This document provides a summary of the current implementation status of the Bit
 - ✅ Mempool statistics endpoint created
 - ✅ Network information retrieval implemented
 - ✅ Wallet information endpoint (read-only) added
+- ✅ Caching service for RPC data implemented
+- ✅ Manual refresh mechanism with cached data display
 
 ### Core UI Components
 - ✅ Application layout component created

@@ -21,7 +21,7 @@ export default function PeersPage() {
   const [stats, setStats] = useState({ total: 0, filtered: 0 });
   const router = useRouter();
 
-  const fetchPeers = async (filterParams = {}, sortParams = {}, includeGeo = false) => {
+  const fetchPeers = async (filterParams = {}, sortParams = {}, includeGeo = false, skipCache = false) => {
     try {
       setLoading(true);
 
@@ -61,6 +61,11 @@ export default function PeersPage() {
         // Add geolocation parameter
         if (includeGeo) {
           queryParams.append('geo', 'true');
+        }
+
+        // Add cache parameter
+        if (skipCache) {
+          queryParams.append('useCache', 'false');
         }
 
         const response = await api.get(`/bitcoin/peers?${queryParams.toString()}`);
@@ -213,10 +218,18 @@ export default function PeersPage() {
             {showMap ? 'Hide Map' : 'Show Map'}
           </button>
           <button
-            onClick={() => fetchPeers(filters, sort, showMap)}
+            onClick={() => fetchPeers(filters, sort, showMap, true)}
             className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            disabled={loading}
           >
-            Refresh
+            {loading ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                <span>Refreshing...</span>
+              </div>
+            ) : (
+              'Refresh'
+            )}
           </button>
         </div>
       </div>

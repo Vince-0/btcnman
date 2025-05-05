@@ -14,61 +14,84 @@ export default function Dashboard() {
   const [nodeInfo, setNodeInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchNodeInfo = async (skipCache = false) => {
+    try {
+      setRefreshing(true);
+
+      // Check if token exists (the API client will handle adding it to requests)
+      if (typeof window !== 'undefined' && !localStorage.getItem('token')) {
+        console.error('No token found in localStorage');
+        setError('You are not logged in. Please log in to view the dashboard.');
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
+      // Try to fetch data from the API using our API client with increased timeout
+      try {
+        console.log('Fetching node info from API...');
+
+        // Request peer data with geolocation for the map
+        // If skipCache is true, add useCache=false to skip the cache
+        const url = skipCache
+          ? '/bitcoin/info?geo=true&useCache=false'
+          : '/bitcoin/info?geo=true';
+
+        const response = await api.get(url);
+
+        console.log('API data received:', Object.keys(response.data));
+
+        // Check if peerInfo has geolocation data
+        if (response.data.peerInfo && response.data.peerInfo.length > 0) {
+          console.log('First peer data:', response.data.peerInfo[0]);
+          console.log('Peers with geolocation:', response.data.peerInfo.filter(p => p.geolocation).length);
+        }
+
+        // Set the node info data
+        setNodeInfo(response.data);
+
+        // Set last updated time if available
+        if (response.data.lastUpdated) {
+          setLastUpdated(new Date(response.data.lastUpdated));
+        }
+
+        // Show a warning if using mock data
+        if (response.data._isMockData) {
+          setError('Note: Displaying mock data because the Bitcoin node is unavailable.');
+        } else {
+          setError(null);
+        }
+      } catch (apiError) {
+        console.error('API fetch error:', apiError);
+
+        // Get the error message from the response if available
+        const errorMessage = apiError.response?.data?.message || apiError.message;
+
+        // Handle timeout errors specifically
+        if (apiError.code === 'ECONNABORTED' && apiError.message.includes('timeout')) {
+          setError('The request to the Bitcoin node timed out. The node might be busy processing a large request.');
+        } else {
+          setError(`Failed to connect to the Bitcoin node: ${errorMessage}`);
+        }
+      }
+    } catch (err) {
+      console.error('General error:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Handle refresh button click
+  const handleRefresh = () => {
+    fetchNodeInfo(true); // Skip cache
+  };
 
   useEffect(() => {
-    const fetchNodeInfo = async () => {
-      try {
-        // Check if token exists (the API client will handle adding it to requests)
-        if (typeof window !== 'undefined' && !localStorage.getItem('token')) {
-          console.error('No token found in localStorage');
-          setError('You are not logged in. Please log in to view the dashboard.');
-          setLoading(false);
-          return;
-        }
-
-        // Try to fetch data from the API using our API client with increased timeout
-        try {
-          console.log('Fetching node info from API...');
-
-          // Request peer data with geolocation for the map
-          const response = await api.get('/bitcoin/info?geo=true');
-
-          console.log('API data received:', Object.keys(response.data));
-
-          // Check if peerInfo has geolocation data
-          if (response.data.peerInfo && response.data.peerInfo.length > 0) {
-            console.log('First peer data:', response.data.peerInfo[0]);
-            console.log('Peers with geolocation:', response.data.peerInfo.filter(p => p.geolocation).length);
-          }
-
-          // Set the node info data
-          setNodeInfo(response.data);
-
-          // Show a warning if using mock data
-          if (response.data._isMockData) {
-            setError('Note: Displaying mock data because the Bitcoin node is unavailable.');
-          }
-        } catch (apiError) {
-          console.error('API fetch error:', apiError);
-
-          // Get the error message from the response if available
-          const errorMessage = apiError.response?.data?.message || apiError.message;
-
-          // Handle timeout errors specifically
-          if (apiError.code === 'ECONNABORTED' && apiError.message.includes('timeout')) {
-            setError('The request to the Bitcoin node timed out. The node might be busy processing a large request.');
-          } else {
-            setError(`Failed to connect to the Bitcoin node: ${errorMessage}`);
-          }
-        }
-      } catch (err) {
-        console.error('General error:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchNodeInfo();
   }, []);
 
@@ -238,7 +261,33 @@ export default function Dashboard() {
         crossOrigin=""
       />
 
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <div className="flex items-center space-x-4">
+          {lastUpdated && (
+            <span className="text-sm text-gray-500">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 flex items-center"
+          >
+            {refreshing ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Refreshing...
+              </>
+            ) : (
+              'Refresh'
+            )}
+          </button>
+        </div>
+      </div>
 
       {/* Node Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

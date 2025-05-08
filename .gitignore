@@ -38,4 +38,4 @@ btcnman.code-workspace
 Thumbs.db
 
 # .augment
-.augment/*.logs
+.augment/*.log

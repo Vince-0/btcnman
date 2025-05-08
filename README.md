@@ -1,6 +1,11 @@
 # Bitcoin Node Manager
+Author [https://github.com/Vince-0](https://github.com/Vince-0/Projects)
+
+Use at your own risk.
 
 Modern implementation of Bitcoin Node Manager, a dashboard and control system for Bitcoin nodes.
+
+This application runs on https://bitcoin.org/en/bitcoin-core/ and interacts with it through the RPC interface.
 
 ## Features
 
@@ -18,6 +23,11 @@ Modern implementation of Bitcoin Node Manager, a dashboard and control system fo
 - **Block Explorer**: Browse blocks and transactions
 - **Wallet Overview**: Read-only wallet information
 - **User Authentication**: Secure login system
+
+<p align="center">
+  <img src="https://github.com/Vince-0/btcnman/blob/af6cce5a645c215be09b2c3e1c36b5ce18792a3e/screenshots/btcnman_dash.jpg" />
+   <img src="https://github.com/Vince-0/btcnman/blob/af6cce5a645c215be09b2c3e1c36b5ce18792a3e/screenshots/btcnman_peers.jpg" />
+</p>
 
 ## Recent Improvements
 
@@ -106,7 +116,6 @@ Modern implementation of Bitcoin Node Manager, a dashboard and control system fo
 3. Configure environment variables
    ```
    # In the backend directory, update the .env file with your Bitcoin Core RPC credentials
-   # The default .env file is already set up to connect to 169.255.240.110
    ```
 
 4. Initialize the database
@@ -226,6 +235,60 @@ If the navigation sidebar doesn't appear on all pages:
 2. If you're developing new pages, make sure they don't override the template layout
 3. The sidebar is automatically hidden on authentication pages (login, register) for a better user experience
 
+## Project Structure
+
+The project is organized into the following directory structure:
+
+```
+btcnman/
+├── backend/                  # Node.js/Express backend
+│   ├── docs/                 # API documentation
+│   ├── prisma/               # Database schema and migrations
+│   │   └── migrations/       # Database migration files
+│   └── src/                  # Source code
+│       ├── controllers/      # API controllers
+│       ├── middleware/       # Express middleware
+│       ├── models/           # Data models
+│       ├── routes/           # API routes
+│       ├── services/         # Business logic
+│       └── utils/            # Utility functions
+│
+├── frontend/                 # Next.js frontend
+│   ├── public/               # Static assets
+│   └── src/                  # Source code
+│       ├── app/              # Next.js app router pages
+│       │   ├── dashboard/    # Dashboard page
+│       │   ├── explorer/     # Block explorer pages
+│       │   ├── peers/        # Peer management page
+│       │   ├── banned/       # Ban management page
+│       │   ├── rules/        # Rule system pages
+│       │   └── settings/     # Settings page
+│       ├── components/       # React components
+│       │   ├── charts/       # Chart components
+│       │   ├── common/       # Common UI components
+│       │   ├── explorer/     # Block explorer components
+│       │   └── layout/       # Layout components
+│       └── lib/              # Utility functions and API clients
+│
+├── docs/                     # Project documentation
+├── simple-demo.html          # Simple demo page without Tailwind/Next.js
+└── start.sh                  # Script to start both frontend and backend
+```
+
+### Key Components
+
+#### Backend
+- **Controllers**: Handle HTTP requests and responses
+- **Services**: Contain business logic and interact with the Bitcoin node
+- **Routes**: Define API endpoints
+- **Middleware**: Handle authentication and request processing
+- **Prisma**: ORM for database operations
+
+#### Frontend
+- **App Router**: Next.js 13+ app directory structure for pages
+- **Components**: Reusable React components
+- **Lib**: Utility functions and API clients
+
 ## Deployment
 
 For production deployment, follow these steps:
@@ -251,6 +314,75 @@ For production deployment, follow these steps:
    # Serve the frontend using a web server like Apache or Nginx
    ```
 
+## Security
+
+Bitcoin Core RPC is not designed to be exposed to the public internet. It is recommended to run the Bitcoin node and the application on the same machine or in a private network.
+
+Ports 3000,3001 are requried to be open for the application to function properly.
+
+Port 8332 is required to be open for the Bitcoin node RPC to function properly.
+
+## Upcoming Features
+
+The following features are planned for future releases:
+
+### UI Enhancements
+- Dark/light mode toggle
+- Breadcrumb navigation
+- Enhanced card, data table, and form components
+- Modal/dialog component
+- Notification system
+
+### Dashboard Improvements
+- Real-time updates via WebSocket
+- Historical data visualization
+- System resource monitoring
+
+### Rule System
+- Enhanced rule scheduling interface
+
+### Ban Management
+- Ban list import/export functionality
+- IPTables rules generation
+- Ban statistics visualization
+
+### Block Explorer
+- Fork detection and visualization
+- Enhanced block statistics
+
+### Wallet Features
+- Detailed transaction history view
+- Address management interface
+- Balance history charts
+- UTXO listing
+
+### Advanced Visualizations
+- Network graph visualization
+- Time-series visualization
+- Heatmap component
+- Dashboard widget system
+
+### Real-time Updates
+- WebSocket-based real-time data updates
+- Subscription management for data changes
+
+### Settings and Configuration
+- Configuration backup/restore functionality
+- Enhanced settings management
+
+### Deployment
+- Production deployment scripts for Debian/Ubuntu
+- Apache web server configuration
+- SSL certificate setup with Let's Encrypt
+- Database migration and backup procedures
+
+### Security and Performance
+- HTTPS enforcement
+- Content Security Policy implementation
+- Rate limiting for API endpoints
+- Frontend bundle optimization
+- Enhanced caching strategies
+
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the [MIT License](https://mit-license.org/) - see the LICENSE file for details.

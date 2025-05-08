@@ -386,4 +386,4 @@ The following features are planned for future releases:
 
 ## License
 
-This project is licensed under the [MIT License](https://mit-license.org/) - see the [LICENS](https://github.com/Vince-0/btcnman/blob/44428645153861942e40bd7670e16aecfaa25d99/LICENCE)E file for details.
+This project is licensed under the [MIT License](https://mit-license.org/) - see the [LICENSE](https://github.com/Vince-0/btcnman/blob/44428645153861942e40bd7670e16aecfaa25d99/LICENCE)E file for details.

@@ -24,7 +24,6 @@ out/
 
 # Logs
 logs/
-*.log
 
 # Editor directories and files
 .idea/

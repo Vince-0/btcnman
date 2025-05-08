@@ -116,7 +116,7 @@ This application runs on https://bitcoin.org/en/bitcoin-core/ and interacts with
 
 3. Configure environment variables
    ```
-   # In the backend directory, update the .env file with your Bitcoin Core RPC credentials
+   # In the backend directory, copy the .env.example file to .env and update the .env file with your Bitcoin Core RPC credentials
    ```
 
 4. Initialize the database

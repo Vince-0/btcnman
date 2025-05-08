@@ -99,7 +99,7 @@ This application runs on https://bitcoin.org/en/bitcoin-core/ and interacts with
 
 1. Clone the repository
    ```
-   git clone https://github.com/yourusername/btcnman.git
+   git clone https://github.com/Vince-0/btcnman.git
    cd btcnman
    ```
 

@@ -25,7 +25,8 @@ This application runs on https://bitcoin.org/en/bitcoin-core/ and interacts with
 - **User Authentication**: Secure login system
 
 <p align="center">
-  <img src="https://github.com/Vince-0/btcnman/blob/af6cce5a645c215be09b2c3e1c36b5ce18792a3e/screenshots/btcnman_dash.jpg" />
+  <img src="https://github.com/Vince-0/btcnman/blob/f9a771d2616bd2866e061d471c3481ff9943e8f5/screenshots/btcnman_dash.jpg" />
+  
    <img src="https://github.com/Vince-0/btcnman/blob/af6cce5a645c215be09b2c3e1c36b5ce18792a3e/screenshots/btcnman_peers.jpg" />
 </p>
 

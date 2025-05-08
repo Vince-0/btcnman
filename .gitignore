@@ -36,3 +36,6 @@ btcnman.code-workspace
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# .augment
+.augment/*.logs

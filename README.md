@@ -161,7 +161,7 @@ If you encounter issues connecting to the Bitcoin Core node:
    server=1
    rpcuser=your_rpc_username
    rpcpassword=your_rpc_password
-   rpcallowip=0.0.0.0/0
+   rpcallowip=[YOUR_IP_0.0.0.0/0]
    ```
 4. The RPC URL format has been fixed to properly include authentication credentials:
    ```

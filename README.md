@@ -7,6 +7,8 @@ Modern implementation of Bitcoin Node Manager, a dashboard and control system fo
 
 This application runs on https://bitcoin.org/en/bitcoin-core/ and interacts with it through the RPC interface.
 
+Made as part of [Adventures In AI Coding](https://github.com/Vince-0/AdventuresInAICoding)
+
 ## Features
 
 - **Dashboard**: Real-time node status, blockchain statistics, and mempool information

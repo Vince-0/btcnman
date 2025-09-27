@@ -5,7 +5,7 @@ Use at your own risk.
 
 Modern implementation of Bitcoin Node Manager, a dashboard and control system for Bitcoin nodes.
 
-This application runs on https://bitcoin.org/en/bitcoin-core/ and interacts with it through the RPC interface.
+This application runs on [Bitcoin Core](https://bitcoin.org/en/bitcoin-core/) and interacts with it through the RPC interface.
 
 Made as part of [Adventures In AI Coding](https://github.com/Vince-0/AdventuresInAICoding)
 
